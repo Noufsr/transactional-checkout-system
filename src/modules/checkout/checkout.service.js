@@ -4,23 +4,24 @@ const saleRepository = require('../sales/sale.repository');
 const saleItemRepository = require('../sale_items/sale_item.repository');
 const paymentRepository = require('../payments/payment.repository');
 const idempotencyRepository = require('../idempotency/idempotency.repository');
+const { randomUUID } = require('crypto');
 
 
 async function checkout(data, idempotencyKey) {
 
-  // Validar estructura básica del request
+  
   if (!data || !Array.isArray(data.items) || data.items.length === 0) {
     throw new Error('Invalid items');
   }
 
-  // Idempotencia: evitar procesar la misma request dos veces
+ 
   const existing = await idempotencyRepository.findByKey(idempotencyKey);
 
   if (existing && existing.response) {
     return JSON.parse(existing.response);
   }
 
-  // Obtener conexión para manejar transacción
+ 
   const connection = await db.getConnection();
 
   try {
@@ -33,7 +34,7 @@ async function checkout(data, idempotencyKey) {
       'PENDING'
     );
 
-    // Crear la venta en estado inicial
+    
     const saleId = await saleRepository.createSale(connection, 'PENDING');
 
     let total = 0;
@@ -49,7 +50,7 @@ async function checkout(data, idempotencyKey) {
         throw new Error(`Product ${productId} not found`);
       }
 
-      // Descontar stock de forma atómica (evita sobreventa)
+      // Descontar stock de forma atomica y verificar que haya suficiente
       const success = await productRepository.decreaseStock(
         connection,
         productId,
@@ -78,16 +79,18 @@ async function checkout(data, idempotencyKey) {
         price
       );
     }
-
+    
     // Actualizar total de la venta
     await saleRepository.updateSaleTotal(connection, saleId, total);
-
+    
     //  Crear registro de pago en estado inicial
+    const external_id = `pay_${randomUUID()}`;
     const paymentId = await paymentRepository.createPayment(
       connection,
       saleId,
       total,
-      'PENDING'
+      'PENDING',
+      external_id
     );
 
     //  Construir respuesta para idempotencia
@@ -96,7 +99,8 @@ async function checkout(data, idempotencyKey) {
       status: 'PENDING',
       payment: {
         id: paymentId,
-        status: 'PENDING'
+        status: 'PENDING',
+        external_id
       }
     };
 
@@ -107,18 +111,18 @@ async function checkout(data, idempotencyKey) {
       response
     );
 
-    //  Confirmar transacción
+
     await connection.commit();
 
     return response;
 
   } catch (error) {
-    // Si algo falla, rollback para mantener consistencia
+
     await connection.rollback();
     throw error;
 
   } finally {
-    // Liberar conexión al pool
+  
     connection.release();
   }
 }

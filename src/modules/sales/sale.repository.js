@@ -13,7 +13,16 @@ async function updateSaleTotal(connection, saleId, total) {
     [total, saleId]
   );
 }
+
+
+async function updateStatus(connection, saleId, status) {
+  await connection.query(
+    'UPDATE sales SET status = ? WHERE id = ?',
+    [status, saleId]
+  );
+}
 module.exports = {
   createSale,
-  updateSaleTotal
+  updateSaleTotal,
+  updateStatus
 };
