@@ -63,9 +63,7 @@ CREATE TABLE payments (
     FOREIGN KEY (sale_id) REFERENCES sales(id)
 );
 
--- ======================
--- IDEMPOTENCY
--- ======================
+
 -- ======================
 -- IDEMPOTENCY KEYS
 -- ======================
