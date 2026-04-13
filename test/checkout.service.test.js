@@ -56,7 +56,39 @@ describe('Checkout Service', () => {
     expect(result).toHaveProperty('saleId');
     expect(mockConnection.commit).toHaveBeenCalled();
   });
+  test('should rollback when stock is insufficient', async () => {
 
+  const mockConnection = {
+      beginTransaction: jest.fn(),
+      commit: jest.fn(),
+      rollback: jest.fn(),
+      release: jest.fn(),
+      query: jest.fn()
+  };
+
+  pool.getConnection.mockResolvedValue(mockConnection);
+
+  productRepository.findById.mockResolvedValue({
+      id: 1,
+      price: 1000,
+      stock: 1
+  });
+
+  
+  productRepository.decreaseStock.mockResolvedValue(false);
+
+  idempotencyRepository.findByKey.mockResolvedValue(null);
+
+  await expect(
+      checkoutService.checkout(
+      { items: [{ product_id: 1, quantity: 5 }] },
+      'test-key'
+      )
+  ).rejects.toThrow();
+
+  expect(mockConnection.rollback).toHaveBeenCalled();
+  });
+  
   test('should return stored response if idempotency key exists', async () => {
 
   const mockResponse = {
@@ -67,8 +99,9 @@ describe('Checkout Service', () => {
 
   
   idempotencyRepository.findByKey.mockResolvedValue({
-    response: mockResponse
+    response: JSON.stringify(mockResponse)
   });
+
 
   const result = await checkoutService.checkout(
     { items: [{ product_id: 1, quantity: 1 }] },

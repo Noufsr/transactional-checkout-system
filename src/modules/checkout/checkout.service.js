@@ -17,11 +17,7 @@ async function checkout(data, idempotencyKey) {
  
   const existing = await idempotencyRepository.findByKey(idempotencyKey);
 
-  if (existing && existing.response) {
-  return typeof existing.response === 'string'
-    ? JSON.parse(existing.response)
-    : existing.response;
-}
+ if (existing) return JSON.parse(existing.response);
  
   const connection = await db.getConnection();
 
