@@ -1,9 +1,8 @@
 -- Database schema for ecommerce backend
 -- Includes products, sales, payments, sale_items and idempotency handling
 
-CREATE DATABASE IF NOT EXISTS ecommerce;
-USE ecommerce;
-
+-- Ejecutar manualmente: CREATE DATABASE ecommerce; o CREATE DATABASE ecommerce_test;
+-- y seleccionarla antes de correr este script.
 -- ======================
 -- PRODUCTS
 -- ======================
