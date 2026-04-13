@@ -18,16 +18,17 @@ async function checkout(data, idempotencyKey) {
   const existing = await idempotencyRepository.findByKey(idempotencyKey);
 
   if (existing && existing.response) {
-    return JSON.parse(existing.response);
-  }
-
+  return typeof existing.response === 'string'
+    ? JSON.parse(existing.response)
+    : existing.response;
+}
  
   const connection = await db.getConnection();
 
   try {
     await connection.beginTransaction();
 
-    // Registrar la idempotency key como PENDING
+    
     await idempotencyRepository.createIdempotencyKey(
       connection,
       idempotencyKey,
@@ -39,7 +40,6 @@ async function checkout(data, idempotencyKey) {
 
     let total = 0;
 
-    // Procesar cada item de la compra
     for (const item of data.items) {
       const { productId, quantity } = item;
 
