@@ -82,7 +82,7 @@ Body:
 ```json
 {
   "items": [
-    { "product_id": 1, "quantity": 1 }
+    { "productId": 1, "quantity": 1 }
   ]
 }
 ```
