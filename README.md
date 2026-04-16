@@ -4,7 +4,22 @@ Backend de e-commerce desarrollado con Node.js, Express y MariaDB, enfocado en r
 
 ---
 
-## Instalación
+## Ejecutar con Docker
+
+La forma más rápida de levantar el proyecto:
+
+```bash
+git clone https://github.com/Noufsr/transactional-checkout-system.git
+cd transactional-checkout-system
+cp .env.docker.example .env.docker
+docker-compose up --build
+```
+
+La base de datos se crea y pobla automáticamente. El servidor queda disponible en `http://localhost:3000`.
+
+---
+
+## Instalación local
 
 ```bash
 git clone https://github.com/Noufsr/transactional-checkout-system.git
@@ -14,7 +29,7 @@ npm install
 
 ---
 
-## Configuración
+## Configuración local
 
 Crear archivo `.env` basado en `.env.example`:
 
@@ -182,4 +197,3 @@ WHERE id = ? AND stock >= ?
 - Integración con proveedor de pagos real
 - Sistema de reembolsos
 - Autenticación y autorización (JWT)
-- Dockerización
